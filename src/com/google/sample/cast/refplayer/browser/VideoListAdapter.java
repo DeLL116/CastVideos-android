@@ -59,8 +59,34 @@ public class VideoListAdapter extends RecyclerView.Adapter<VideoListAdapter.View
 
     @Override
     public void onBindViewHolder(ViewHolder viewHolder, final int position) {
-        final MediaInfo item = videos.get(position);
-        MediaMetadata mm = item.getMetadata();
+        final MediaInfo castSampleMediaInfo = videos.get(position);
+        final MediaInfo overriddenWithLiveMediaInfo;
+        if (position == 0) {
+
+            String liveStreamOverrideUri;
+
+            // Stadium Linear LiveStream Sample
+            //liveStreamOverrideUri = "https://d28avce4cnwu2y.cloudfront.net/v1/master/61a556f78e4547c8ab5c6297ea291d6350767ca2/Mux/hls/live/522512/mux_4/master.m3u8?ads.an=Stadium&ads.rdid=8ff0d128-b056-4b5e-ae7d-83d3200e825a&ads.token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.IntcInVzZXJfaWRcIjowLFwicHJvZmlsZV9pZFwiOjAsXCJkZXZpY2VfaWRcIjowLFwiZXhwaXJlc1wiOjE1NzAxNDQwMDksXCJpYXRcIjoxNTM4NjA4MDA5LFwidW5pcXVlXCI6XCI1YmI1NGI4OWU2MWRkXCIsXCJwcmVmaXhcIjpcIkdUX1wifSI.lLNKe6df386yVIWTGa0uCrebS9O69JHV5o2ki6VxCqA&ads.gdfp_req=1&ads.ad_rule=0&ads.correlator=1538609789&ads.output=vast&ads.cmsid=2455200&ads.unviewed_position_start=1&ads.impl=s&ads.env=vp&ads.vid=70987&ads.idtype=adid&ads.ppid=1e55c2e40caf708799ff26eb975c3ef3512e8dd5&ads.is_lat=0&ads.sz=640x480&ads.msid=com.watchstadium&ads.iu=%2F32984737%2FWatchStadium%2Flive%2Flinear%2Fmid";
+
+            // Rando HLS LiveStream from https://azure.microsoft.com/en-us/blog/live-247-reference-streams-available/
+             liveStreamOverrideUri = "http://b028.wpc.azureedge.net/80B028/Samples/a38e6323-95e9-4f1f-9b38-75eba91704e4/5f2ce531-d508-49fb-8152-647eba422aec.ism/Manifest(format=m3u8-aapl-v3)";
+
+            // Rando HLS LiveStream from https://azure.microsoft.com/en-us/blog/live-247-reference-streams-available/
+//            liveStreamOverrideUri = "http://b028.wpc.azureedge.net/80B028/SampleStream/595d6b9a-d98e-4381-86a3-cb93664479c2/b722b983-af65-4bb3-950a-18dded2b7c9b.ism/Manifest(format=m3u8-aapl-v3)";
+
+            overriddenWithLiveMediaInfo = new MediaInfo.Builder(liveStreamOverrideUri)
+                    .setContentType("application/x-mpegurl")
+                    .setStreamType(MediaInfo.STREAM_TYPE_LIVE)
+                    .setStreamDuration(1000 * 60)
+                    .setMetadata(castSampleMediaInfo.getMetadata())
+                    .setCustomData(castSampleMediaInfo.getCustomData())
+                    .build();
+        } else {
+            overriddenWithLiveMediaInfo = castSampleMediaInfo;
+        }
+
+
+        MediaMetadata mm = overriddenWithLiveMediaInfo.getMetadata();
         viewHolder.setTitle(mm.getString(MediaMetadata.KEY_TITLE));
         viewHolder.setDescription(mm.getString(MediaMetadata.KEY_SUBTITLE));
         viewHolder.setImage(mm.getImages().get(0).getUrl().toString());
@@ -68,20 +94,20 @@ public class VideoListAdapter extends RecyclerView.Adapter<VideoListAdapter.View
         viewHolder.mMenu.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                mClickListener.itemClicked(view, item, position);
+                mClickListener.itemClicked(view, overriddenWithLiveMediaInfo, position);
             }
         });
         viewHolder.mImgView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                mClickListener.itemClicked(view, item, position);
+                mClickListener.itemClicked(view, overriddenWithLiveMediaInfo, position);
             }
         });
 
         viewHolder.mTextContainer.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                mClickListener.itemClicked(view, item, position);
+                mClickListener.itemClicked(view, overriddenWithLiveMediaInfo, position);
             }
         });
         CastSession castSession = CastContext.getSharedInstance(mAppContext).getSessionManager()
