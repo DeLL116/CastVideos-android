@@ -69,6 +69,11 @@ import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
 import android.widget.VideoView;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -363,7 +368,42 @@ public class LocalPlayerActivity extends AppCompatActivity {
             public void onAdBreakStatusUpdated() {
             }
         });
+
+
+        mSelectedMedia = overrideMediaInfoWithLiveHlsMedia(mSelectedMedia);
+
         remoteMediaClient.load(mSelectedMedia, autoPlay, position);
+    }
+
+    public static MediaInfo overrideMediaInfoWithLiveHlsMedia(MediaInfo originalMediaInfo) {
+        JSONArray liveStreamsArray;
+        String randomLiveStreamHlsUrl = null;
+        // Try to get the hacked data from position 0
+        try {
+            liveStreamsArray = ((JSONArray)(((JSONObject)originalMediaInfo.getCustomData().get("liveStreamsJsonObject")).get("liveStreamsJsonArray")));
+            if (liveStreamsArray != null) {
+                randomLiveStreamHlsUrl = liveStreamsArray.getString(new Random().nextInt(3));
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        if (randomLiveStreamHlsUrl != null) {
+
+            Log.d(TAG, "loadRemoteMedia() called with: overridden LiveStream HLS Sample URI = [" + randomLiveStreamHlsUrl + "]");
+
+            // Cast the random LiveStream URI derived while also setting additional
+            // arguments for Live Streams
+            originalMediaInfo = new MediaInfo.Builder(randomLiveStreamHlsUrl)
+                    .setContentType("application/x-mpegurl")
+                    .setStreamType(MediaInfo.STREAM_TYPE_LIVE)
+                    .setStreamDuration(1000 * 60)
+                    .setMetadata(originalMediaInfo.getMetadata())
+                    .setCustomData(originalMediaInfo.getCustomData())
+                    .build();
+        }
+
+        return originalMediaInfo;
     }
 
     private void setCoverArtStatus(String url) {

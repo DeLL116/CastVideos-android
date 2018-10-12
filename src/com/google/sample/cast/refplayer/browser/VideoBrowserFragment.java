@@ -83,6 +83,7 @@ public class VideoBrowserFragment extends Fragment implements VideoListAdapter.I
 
     @Override
     public void itemClicked(View view, MediaInfo item, int position) {
+        item = LocalPlayerActivity.overrideMediaInfoWithLiveHlsMedia(item);
         if (view instanceof ImageButton) {
             Utils.showQueuePopup(getActivity(), view, item);
         } else {
